@@ -1,0 +1,20 @@
+{
+  "removeReasons" : [
+    "Bad external script hosts ",
+    "Cookie stealings ",
+    "Copyright infringements ",
+    "Incomplete metadata blocks ",
+    "Licensing conflicts ",
+    "Malwares ",
+    "Obfuscated scripts ",
+    "Obfuscated external scripts ",
+    "Privacy stealings ",
+    "Spammings ",
+    "Unattributed script derivatives ",
+    "Undocumented auto-giftings ",
+    "Undocumented auto-likes ",
+    "Vague descriptions ",
+    "Vague scripts ",
+    "XSS attacks "
+  ]
+}

@@ -1,0 +1,65 @@
+<script type="text/javascript">
+  (function () {
+    'use strict';
+
+    function onShow(aImg) {
+      aImg.classList.remove('translucent-icon');
+      aImg.classList.add('opaque-icon');
+    }
+
+    function onError(aEv) {
+      var img = aEv.target;
+      var container = img.parentNode;
+
+      container.removeChild(img);
+    }
+
+    function onLoad(aEv) {
+      var img = aEv.target;
+      var container = img.parentNode;
+
+      var node = container.querySelector('i');
+
+      container.removeChild(node);
+      img.classList.remove('hide-icon');
+
+      setTimeout(onShow, 250, img);
+    }
+
+    function onTimeout() {
+      var nodes = document.querySelectorAll('[data-icon-src]');
+      var i = null;
+      var container = null;
+      var dataIconSrc = null;
+      var node = null;
+      var img = null;
+
+      for (i = 0; container = nodes[i]; i++) {
+        dataIconSrc = container.getAttribute('data-icon-src');
+
+        node = container.querySelector('i');
+
+        img = new Image();
+
+        img.addEventListener('load', onLoad);
+        img.addEventListener('error', onError);
+
+        img.classList.add('hide-icon');
+        img.classList.add('fade-icon');
+        img.classList.add('translucent-icon');
+
+        img.referrerPolicy = 'same-origin';
+        img.src = dataIconSrc;
+
+        container.appendChild(img);
+      }
+    }
+
+    function onDOMContentLoaded(aEv) {
+      window.setTimeout(onTimeout, 13);
+    }
+
+    document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
+
+  })();
+</script>

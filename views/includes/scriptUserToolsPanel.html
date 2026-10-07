@@ -1,0 +1,40 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="row">
+      <div class="pull-left vote-area">
+        {{#canVote}}
+        <form action="{{{script.scriptVotePageUrl}}}" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="vote" value="{{^votedUp}}up{{/votedUp}}{{#votedUp}}un{{/votedUp}}">
+          <button class="btn-link btn-vote{{#votedUp}} active{{/votedUp}}" type="submit"><i class="fa fa-2x fa-caret-up"></i></button>
+        </form>
+        <form action="{{{script.scriptVotePageUrl}}}" method="post" enctype="multipart/form-data">
+          <input type="hidden" name="vote" value="{{^votedDown}}down{{/votedDown}}{{#votedDown}}un{{/votedDown}}">
+          <button class="btn-link btn-vote{{#votedDown}} active{{/votedDown}}" type="submit"><i class="fa fa-2x fa-caret-down"></i></button>
+        </form>
+        {{/canVote}}
+      </div>
+      <p><i class="fa fa-fw fa-heartbeat"></i> <b>Rating:</b> {{script.rating}}</p>
+      <div class="progress">
+        <div style="width: {{script.votesPercent}}%" class="progress-bar progress-bar-good">{{#script.votes}}{{script.votes}} Votes{{/script.votes}}</div>
+        <div style="width: {{script.flagsPercent}}%" class="progress-bar progress-bar-danger">{{#script.flags.critical}}{{script.flags.critical}} <i class="fa fa-fw fa-flag-o"></i>{{/script.flags.critical}}</div>
+      </div>
+    </div>
+    {{#canFlag}}
+    <ul class="nav nav-pills nav-justified">
+      <li>
+        <div class="text-center">
+          {{#flagged}}
+          <form action="{{{script.scriptFlagPageUrl}}}" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="flag" value="false">
+            <button class="btn btn-link" type="submit" title="Unflag from moderation review"><i class="fa fa-fw fa-flag"></i> Unflag</button>
+          </form>
+          {{/flagged}}
+          {{^flagged}}
+          <a rel="nofollow" href="#" data-toggle="modal" data-target="#flagScriptModal" title="Flag for moderation review"><i class="fa fa-flag-o"></i> Flag</a>
+          {{/flagged}}
+        </div>
+      </li>
+    </ul>
+    {{/canFlag}}
+  </div>
+</div>

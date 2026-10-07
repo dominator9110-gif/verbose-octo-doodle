@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{title}}</title>
+  {{> includes/head.html }}
+  <link rel="stylesheet" type="text/css" media="all" href="/redist/npm/bootstrap-markdown/css/bootstrap-markdown.min.css">
+  {{^isLib}}
+  <link rel="stylesheet" type="text/css" media="all" href="/redist/npm/select2/select2.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/redist/npm/select2-bootstrap-css/select2-bootstrap.css"> <!-- Bootstrap 3 theme -->
+  {{/isLib}}
+  <link rel="stylesheet" type="text/css" media="all" href="/css/scriptPage.css">
+  <link rel="stylesheet" type="text/css" media="all" href="/redist/npm/animate.css/animate.css">
+</head>
+<body>
+  {{> includes/header.html }}
+  <div class="container-fluid">
+    <form action="edit" method="post">
+      <div class="row">
+        <div class="container-fluid col-sm-8">
+          <div class="row">
+            <div class="col-xs-12">
+              {{> includes/scriptPageHeader.html }}
+              <div class="user-content">
+                <textarea name="about" data-provide="markdown" data-iconlibrary="fa" rows="28" class="col-xs-12" placeholder="Type Script Info here using Markdown.">{{script.about}}</textarea>
+              </div>
+              <div class="btn-toolbar">
+                <a href="/about/Frequently-Asked-Questions"><i class="fa fa-question-circle" title="FAQ"></i></a>
+                <a href="https://guides.github.com/features/mastering-markdown/" title="GitHub Flavor Markdown compatible"><i class="octicon octicon-markdown"></i></a>
+                <button type="submit" class="btn btn-sm btn-success pull-right" title="Save Script Info changes">
+                  <i class="fa fa-fw fa-save"></i><span class="hidden-xs"> Save</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="container-fluid col-sm-4">
+          {{#script}}
+          {{^isLib}}
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <div class="panel-title"><i class="fa fa-fw fa-tags"></i> Script Groups</div>
+            </div>
+            <div class="panel-body">
+              <input type="hidden" id="groups" name="groups" style="width: 100%;" title="Optionally type a group name to add this script to. Pressing &#x2386; moves to the next group name search. One new group name may be created per script and must be the first group name." />
+            </div>
+          </div>
+          {{/isLib}}
+          {{> includes/scriptAuthorToolsPanel.html }}
+          {{> includes/scriptModToolsPanel.html }}
+          {{/script}}
+        </div>
+      </div>
+    </form>
+  </div>
+  {{> includes/footer.html }}
+  {{> includes/scripts/lazyIconScript.html }}
+  {{> includes/scripts/markdownEditor.html }}
+  {{^isLib}}
+    {{> includes/scripts/groupSelector.html }}
+  {{/isLib}}
+</body>
+</html>

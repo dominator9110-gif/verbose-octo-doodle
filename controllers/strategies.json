@@ -1,0 +1,32 @@
+{
+  "github": {
+    "name": "GitHub",
+    "oauth": true,
+    "readonly": false
+  },
+  "gitlab": {
+    "name": "GitLab",
+    "oauth": true,
+    "readonly": true
+  },
+  "google": {
+    "name": "Google",
+    "oauth": true,
+    "readonly": false
+  },
+  "imgur": {
+    "name": "Imgur",
+    "oauth": true,
+    "readonly": false
+  },
+  "reddit": {
+    "name": "Reddit",
+    "oauth": true,
+    "readonly": true
+  },
+  "steam": {
+    "name": "Steam",
+    "oauth": false,
+    "readonly": false
+  }
+}

@@ -1,0 +1,47 @@
+<script type="text/javascript">
+  (function () {
+    'use strict';
+
+    {{> includes/scripts/polyfillElementClosest.js }}
+
+    function onClick(aEv) {
+      var commentNode = document.querySelector('textarea[name="comment-content"]');
+      var containerNode = aEv.target.closest('.topic-post');
+      var authorNode = containerNode.querySelector('.topic-meta-data .names .username');
+      var value = null;
+      var url = null;
+
+      document.location.hash = containerNode.id;
+
+      url = document.location.pathname + document.location.search + document.location.hash;
+      url = url.replace(/\(/g, '%28').replace(/\)/g, '%29');
+
+      value = commentNode.value;
+
+      if (!/^\s*$/.test(value)) {
+        // Add linebreaks if reply already started.
+        value += '\n\n';
+      }
+
+      value += '[Re](' + url + '): ';
+      value += authorNode.textContent ? '@' + authorNode.textContent + ': ' : '';
+      value += '\n';
+
+      commentNode.value = value;
+      commentNode.focus();
+    }
+
+    function onDOMContentLoaded(aEv) {
+      var i = null;
+      var thisNode = null;
+      var replyNodes = document.querySelectorAll('.btn-comment-reply');
+
+      for (i = 0; thisNode = replyNodes[i++];) {
+        thisNode.addEventListener('click', onClick);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', onDOMContentLoaded);
+
+  })();
+</script>

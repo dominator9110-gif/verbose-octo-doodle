@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{title}}</title>
+  {{> includes/head.html }}
+</head>
+<body>
+  {{> includes/header.html }}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="container-fluid col-sm-8">
+        <div class="row">
+          <div class="col-xs-12">
+            {{> includes/userPageHeader.html }}
+            {{#user.aboutRendered}}
+            <div class="panel panel-default">
+              <div class="panel-body">
+                {{#authedUser}}
+                  <div class="user-content">{{{user.aboutRendered}}}</div>
+                {{/authedUser}}
+                {{^authedUser}}
+                  {{#user.isTrusted}}
+                    <div class="user-content">{{{user.aboutRendered}}}</div>
+                  {{/user.isTrusted}}
+                  {{^user.isTrusted}}
+                    {{#user.aboutRendered}}
+                      <em>This site requires you to be registered and logged in to view personal profiles.</em>
+                    {{/user.aboutRendered}}
+                  {{/user.isTrusted}}
+                {{/authedUser}}
+              </div>
+            </div>
+            {{/user.aboutRendered}}
+          </div>
+        </div>
+      </div>
+      <div class="container-fluid col-sm-4">
+        {{> includes/userSidePanel.html }}
+      </div>
+    </div>
+  </div>
+  {{> includes/userModals.html }}
+  {{> includes/footer.html }}
+  {{> includes/scripts/clipboard.html }}
+</body>
+</html>
