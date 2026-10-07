@@ -1,0 +1,12 @@
+<div class="panel panel-default">
+  <div class="panel-body">
+    <ul class="nav nav-pills nav-justified">
+      {{#flagged}}
+        <li><a rel="nofollow" href="{{{flagUrl}}}" class="{{^canFlag}}disabled{{/canFlag}}"><i class="fa fa-flag"></i> Unflag</a></li>
+      {{/flagged}}
+      {{^flagged}}
+        <li><a rel="nofollow" href="#" data-toggle="modal" data-target="#flagUserModal" class="{{^canFlag}}disabled{{/canFlag}}"><i class="fa fa-flag-o"></i> Flag</a></li>
+      {{/flagged}}
+    </ul>
+  </div>
+</div>
