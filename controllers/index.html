@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en"><head><title>controllers/index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="controllers/index"><meta name="groc-project-path" content="controllers/index.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">controllers/index.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-pi">'use strict'</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Define some pseudo module globals</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> isPro = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/debug'</span>).isPro;
+<span class="hljs-keyword">var</span> isDev = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/debug'</span>).isDev;
+<span class="hljs-keyword">var</span> isDbg = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/debug'</span>).isDbg;
+
+<span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);
+<span class="hljs-keyword">var</span> _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">'underscore'</span>);
+
+<span class="hljs-keyword">var</span> Discussion = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/discussion'</span>).Discussion;
+<span class="hljs-keyword">var</span> Group = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/group'</span>).Group;
+<span class="hljs-keyword">var</span> User = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/user'</span>).User;
+<span class="hljs-keyword">var</span> Script = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/script'</span>).Script;
+<span class="hljs-keyword">var</span> Strategy = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/strategy'</span>).Strategy;
+
+<span class="hljs-keyword">var</span> strategies = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./strategies.json'</span>);
+<span class="hljs-keyword">var</span> discussionLib = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./discussion'</span>);
+<span class="hljs-keyword">var</span> modelParser = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/modelParser'</span>);
+<span class="hljs-keyword">var</span> modelQuery = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/modelQuery'</span>);
+<span class="hljs-keyword">var</span> execQueryTask = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/tasks'</span>).execQueryTask;
+<span class="hljs-keyword">var</span> removeSession = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/modifySessions'</span>).remove;
+<span class="hljs-keyword">var</span> pageMetadata = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/templateHelpers'</span>).pageMetadata;
+<span class="hljs-keyword">var</span> orderDir = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/templateHelpers'</span>).orderDir;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The home page has scripts and groups in a sidebar</p></div></div><div class="code"><div class="wrapper">exports.home = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aReq, aRes)</span> </span>{
+  <span class="hljs-keyword">var</span> authedUser = aReq.session.user;
+
+  <span class="hljs-keyword">var</span> options = {};
+  <span class="hljs-keyword">var</span> tasks = [];
+
+  options.librariesOnly = aReq.query.library !== <span class="hljs-literal">undefined</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Page metadata</p></div></div><div class="code"><div class="wrapper">  pageMetadata(options, options.librariesOnly ? <span class="hljs-string">'Libraries'</span> : <span class="hljs-string">''</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Order dir</p></div></div><div class="code"><div class="wrapper">  orderDir(aReq, options, <span class="hljs-string">'name'</span>, <span class="hljs-string">'asc'</span>);
+  orderDir(aReq, options, <span class="hljs-string">'install'</span>, <span class="hljs-string">'desc'</span>);
+  orderDir(aReq, options, <span class="hljs-string">'rating'</span>, <span class="hljs-string">'desc'</span>);
+  orderDir(aReq, options, <span class="hljs-string">'updated'</span>, <span class="hljs-string">'desc'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Session</p></div></div><div class="code"><div class="wrapper">  authedUser = options.authedUser = modelParser.parseUser(authedUser);
+  options.isMod = authedUser &amp;&amp; authedUser.isMod;
+  options.isAdmin = authedUser &amp;&amp; authedUser.isAdmin;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>scriptListQuery</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">var</span> scriptListQuery = Script.find();</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>scriptListQuery: isLib</p></div></div><div class="code"><div class="wrapper">  modelQuery.findOrDefaultIfNull(scriptListQuery, <span class="hljs-string">'isLib'</span>, options.librariesOnly, <span class="hljs-literal">false</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>scriptListQuery: Defaults</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> (options.librariesOnly) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Libraries</p></div></div><div class="code"><div class="wrapper">    modelQuery.applyLibraryListQueryDefaults(scriptListQuery, options, aReq);
+  } <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Scripts</p></div></div><div class="code"><div class="wrapper">    modelQuery.applyScriptListQueryDefaults(scriptListQuery, options, aReq);
+  }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>scriptListQuery: Pagination</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">var</span> pagination = options.pagination; <span class="hljs-comment">// is set in modelQuery.apply___ListQueryDefaults</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>popularGroupListQuery</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">var</span> popularGroupListQuery = Group.find();
+  popularGroupListQuery
+    .sort(<span class="hljs-string">'-size'</span>)
+    .limit(<span class="hljs-number">25</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Announcements</p></div></div><div class="code"><div class="wrapper">  options.announcementsCategory = _.findWhere(discussionLib.categories, {slug: <span class="hljs-string">'announcements'</span>});
+  options.announcementsCategory = modelParser.parseCategory(options.announcementsCategory);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>announcementsDiscussionListQuery</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">var</span> announcementsDiscussionListQuery = Discussion.find();
+  announcementsDiscussionListQuery
+    .and({category: options.announcementsCategory.slug})
+    .sort(<span class="hljs-string">'-created'</span>)
+    .limit(<span class="hljs-number">5</span>);
+
+  <span class="hljs-comment">//--- Tasks</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Pagination</p></div></div><div class="code"><div class="wrapper">  tasks.push(pagination.getCountTask(scriptListQuery));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>scriptListQuery</p></div></div><div class="code"><div class="wrapper">  tasks.push(execQueryTask(scriptListQuery, options, <span class="hljs-string">'scriptList'</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>popularGroupListQuery</p></div></div><div class="code"><div class="wrapper">  tasks.push(execQueryTask(popularGroupListQuery, options, <span class="hljs-string">'popularGroupList'</span>));</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>announcementsDiscussionListQuery</p></div></div><div class="code"><div class="wrapper">  tasks.push(execQueryTask(announcementsDiscussionListQuery, options, <span class="hljs-string">'announcementsDiscussionList'</span>));
+
+  <span class="hljs-comment">//---</span>
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">preRender</span><span class="hljs-params">()</span> </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>scriptList</p></div></div><div class="code"><div class="wrapper">    options.scriptList = _.map(options.scriptList, modelParser.parseScript);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>popularGroupList</p></div></div><div class="code"><div class="wrapper">    options.popularGroupList = _.map(options.popularGroupList, modelParser.parseGroup);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>announcementsDiscussionList</p></div></div><div class="code"><div class="wrapper">    options.announcementsDiscussionList = _.map(options.announcementsDiscussionList, modelParser.parseDiscussion);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Pagination</p></div></div><div class="code"><div class="wrapper">    options.paginationRendered = pagination.renderDefault(aReq);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Empty list</p></div></div><div class="code"><div class="wrapper">    options.scriptListIsEmptyMessage = <span class="hljs-string">'No scripts.'</span>;
+    <span class="hljs-keyword">if</span> (options.isFlagged) {
+      <span class="hljs-keyword">if</span> (options.librariesOnly) {
+        options.scriptListIsEmptyMessage = <span class="hljs-string">'No flagged libraries.'</span>;
+      } <span class="hljs-keyword">else</span> {
+        options.scriptListIsEmptyMessage = <span class="hljs-string">'No flagged scripts.'</span>;
+      }
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (options.searchBarValue) {
+      <span class="hljs-keyword">if</span> (options.librariesOnly) {
+        options.scriptListIsEmptyMessage = <span class="hljs-string">'We couldn\'t find any libraries with this search value.'</span>;
+      } <span class="hljs-keyword">else</span> {
+        options.scriptListIsEmptyMessage = <span class="hljs-string">'We couldn\'t find any scripts with this search value.'</span>;
+      }
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (options.isUserScriptListPage) {
+      options.scriptListIsEmptyMessage = <span class="hljs-string">'This user hasn\'t added any scripts yet.'</span>;
+    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Heading</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (options.librariesOnly) {
+      options.pageHeading = options.isFlagged ? <span class="hljs-string">'Flagged Libraries'</span> : <span class="hljs-string">'Libraries'</span>;
+    } <span class="hljs-keyword">else</span> {
+      options.pageHeading = options.isFlagged ? <span class="hljs-string">'Flagged Scripts'</span> : <span class="hljs-string">'Scripts'</span>;
+    }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Page metadata</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (options.isFlagged) {
+      <span class="hljs-keyword">if</span> (options.librariesOnly) {
+        pageMetadata(options, [<span class="hljs-string">'Flagged Libraries'</span>, <span class="hljs-string">'Moderation'</span>]);
+      } <span class="hljs-keyword">else</span> {
+        pageMetadata(options, [<span class="hljs-string">'Flagged Scripts'</span>, <span class="hljs-string">'Moderation'</span>]);
+      }
+    }
+  }
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">render</span><span class="hljs-params">()</span> </span>{ aRes.render(<span class="hljs-string">'pages/scriptListPage'</span>, options); }
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">asyncComplete</span><span class="hljs-params">()</span> </span>{ preRender(); render(); }
+  async.parallel(tasks, asyncComplete);
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>UI for user registration</p></div></div><div class="code"><div class="wrapper">exports.register = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aReq, aRes)</span> </span>{
+  <span class="hljs-keyword">var</span> authedUser = aReq.session.user;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>If already logged in, goto the front page.</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> (authedUser)
+    <span class="hljs-keyword">return</span> aRes.redirect(<span class="hljs-string">'/'</span>);
+
+  <span class="hljs-keyword">var</span> options = {};
+  <span class="hljs-keyword">var</span> tasks = [];</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Page metadata</p></div></div><div class="code"><div class="wrapper">  pageMetadata(options, <span class="hljs-string">'Login / Register'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Session</p></div></div><div class="code"><div class="wrapper">  authedUser = options.authedUser = modelParser.parseUser(authedUser);
+  options.isMod = authedUser &amp;&amp; authedUser.isMod;
+  options.isAdmin = authedUser &amp;&amp; authedUser.isAdmin;
+
+  options.wantname = aReq.session.username;
+  <span class="hljs-keyword">delete</span> aReq.session.username;
+
+  options.strategies = [];</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get OpenId strategies</p></div></div><div class="code"><div class="wrapper">  _.each(strategies, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aStrategy, aStrategyKey)</span> </span>{
+    <span class="hljs-keyword">if</span> (!aStrategy.oauth) {
+      options.strategies.push({
+        <span class="hljs-string">'strat'</span>: aStrategyKey,
+        <span class="hljs-string">'display'</span>: aStrategy.name
+      });
+    }
+  });
+
+  <span class="hljs-comment">//--- Tasks</span>
+
+  tasks.push(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aCallback)</span> </span>{
+    Strategy.find({}, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aAvailableStrategies)</span> </span>{
+      <span class="hljs-keyword">if</span> (aErr) {
+        aCallback();
+      } <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the strategies we have OAuth keys for</p></div></div><div class="code"><div class="wrapper">        aAvailableStrategies.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aStrategy)</span> </span>{
+          options.strategies.push({
+            <span class="hljs-string">'strat'</span>: aStrategy.name,
+            <span class="hljs-string">'display'</span>: aStrategy.display
+          });
+        });
+        aCallback();
+      }
+    });
+  });
+
+  <span class="hljs-comment">//---</span>
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">preRender</span><span class="hljs-params">()</span> </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Sort the strategies</p></div></div><div class="code"><div class="wrapper">    options.strategies = _.sortBy(options.strategies, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aStrategy)</span> </span>{ <span class="hljs-keyword">return</span> aStrategy.display; });</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Prefer GitHub</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">var</span> githubStrategy = _.findWhere(options.strategies, { strat: <span class="hljs-string">'github'</span> });
+    <span class="hljs-keyword">if</span> (githubStrategy)
+      githubStrategy.selected = <span class="hljs-literal">true</span>;
+  }
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">render</span><span class="hljs-params">()</span> </span>{ aRes.render(<span class="hljs-string">'pages/loginPage'</span>, options); }
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">asyncComplete</span><span class="hljs-params">()</span> </span>{ preRender(); render(); }
+  async.parallel(tasks, asyncComplete);
+};
+
+exports.logout = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aReq, aRes)</span> </span>{
+  <span class="hljs-keyword">var</span> authedUser = aReq.session.user;
+
+  <span class="hljs-keyword">if</span> (!authedUser) { <span class="hljs-keyword">return</span> aRes.redirect(<span class="hljs-string">'/'</span>); }
+
+  User.findOne({ _id: authedUser._id }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aUser)</span> </span>{
+    removeSession(aReq, aUser, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      aRes.redirect(<span class="hljs-string">'/'</span>);
+    });
+  });
+};</div></div></div></div></body></html>

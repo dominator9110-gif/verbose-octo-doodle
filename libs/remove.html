@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="en"><head><title>libs/remove</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="libs/remove"><meta name="groc-project-path" content="libs/remove.js"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path">libs/remove.js</div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-pi">'use strict'</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Define some pseudo module globals</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> isPro = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/debug'</span>).isPro;
+<span class="hljs-keyword">var</span> isDev = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/debug'</span>).isDev;
+<span class="hljs-keyword">var</span> isDbg = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../libs/debug'</span>).isDbg;
+
+<span class="hljs-keyword">var</span> Remove = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/remove'</span>).Remove;
+<span class="hljs-keyword">var</span> User = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/user'</span>).User;
+<span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">'async'</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Get the models for removable content that belongs to a user</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> modelNames = [<span class="hljs-string">'Script'</span>];
+<span class="hljs-keyword">var</span> models = {};
+
+modelNames.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aModelName)</span> </span>{
+  models[aModelName] = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/'</span> +
+    aModelName.toLowerCase())[aModelName];
+});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Determine whether content can be removed by a user.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">removeable</span><span class="hljs-params">(aModel, aContent, aUser, aCallback)</span> </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>The user must be logged in
+The user is a moderator then the content must be flagged
+If the user is an admin or greater then the content may be removed</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> (!aUser || (!aContent.flagged &amp;&amp; aUser.role &gt; <span class="hljs-number">3</span>) || aUser.role &gt; <span class="hljs-number">2</span>) {
+    <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">false</span>);
+  }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>You can&#39;t remove yourself
+You can only remove a remove a user with a lesser role than yourself</p></div></div><div class="code"><div class="wrapper">  <span class="hljs-keyword">if</span> (aModel.modelName === <span class="hljs-string">'User'</span>) {
+    <span class="hljs-keyword">return</span> aCallback(aContent._id != aUser._id &amp;&amp; aContent.role &gt; aUser.role,
+      aContent);
+  }
+
+  User.findOne({ _id: aContent._authorId }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aAuthor)</span> </span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Content without an author shouldn&#39;t exist</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (aErr || !aAuthor) { <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">false</span>); }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>You can&#39;t remove your own content this way
+When you remove your own content it&#39;s removed for good</p></div></div><div class="code"><div class="wrapper">    <span class="hljs-keyword">if</span> (aAuthor._id == aUser._id) { <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">false</span>, aAuthor); }</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>You can only remove content by an author with a lesser user role</p></div></div><div class="code"><div class="wrapper">    aCallback(aAuthor.role &gt; aUser.role, aAuthor);
+  });
+}
+exports.removeable = removeable;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">remove</span><span class="hljs-params">(aModel, aContent, aUser, aReason, aCallback)</span> </span>{
+  <span class="hljs-keyword">var</span> removeModel = <span class="hljs-keyword">new</span> Remove({
+    <span class="hljs-string">'model'</span>: aModel.modelName,
+    <span class="hljs-string">'content'</span>: aContent.toObject(),
+    <span class="hljs-string">'removed'</span>: <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(),
+    <span class="hljs-string">'reason'</span>: aReason,
+    <span class="hljs-string">'removerName'</span>: aUser.name,
+    <span class="hljs-string">'removerRole'</span>: aUser.role,
+    <span class="hljs-string">'_removerId'</span>: aUser._id
+  });
+
+  removeModel.save(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aRemove)</span> </span>{
+    aContent.remove(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr)</span> </span>{ aCallback(aRemove); });
+  });
+}
+
+exports.remove = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aModel, aContent, aUser, aReason, aCallback)</span> </span>{
+  removeable(aModel, aContent, aUser, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aCanRemove, aAuthor)</span> </span>{
+    <span class="hljs-keyword">if</span> (!aCanRemove) { <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">false</span>); }
+
+    <span class="hljs-keyword">if</span> (aModel.modelName !== <span class="hljs-string">'User'</span>) {
+      remove(aModel, aContent, aUser, aReason, aCallback);
+    } <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Remove all the user&#39;s content</p></div></div><div class="code"><div class="wrapper">      async.each(modelNames, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aModelName, aCallback)</span> </span>{
+        <span class="hljs-keyword">var</span> model = models[aModelName];
+        model.find({ _authorId: aContent._id },
+          <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aContentArr)</span> </span>{
+            async.each(aContentArr, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aContent, innerCb)</span> </span>{
+              remove(model, aContent, aUser, <span class="hljs-string">'User removed'</span>, innerCb);
+            }, aCallback);
+          });
+      }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+        remove(aModel, aContent, aUser, aReason, aCallback);
+      });
+    }
+  });
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>This function is similar to findOne but expands
+the search to removed content
+You pass it the model of the content, the search query,
+the user making the query (or boolean true for internal usage),
+and a callback function with parameters (alive, content, removed)</p>
+<p>Alive can be true, false, or null. Alive is true if the content
+was found and wasn&#39;t removed. It&#39;s false if the content exists but
+was removed, and null if the content doesn&#39;t exist.</p>
+<p>The content parameter is what you get via the findOne callback even
+if the content is removed (it gets temporarily resurrected).
+You might get null back if the user doesn&#39;t have proper permissions.</p>
+<p>The removed parameter is the Remove document containing the content
+and is always returned if found, regardless of permissions.</p></div></div><div class="code"><div class="wrapper">exports.findDeadorAlive = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aModel, aQuery, aUser, aCallback)</span> </span>{
+  <span class="hljs-keyword">var</span> modelName = aModel.modelName;
+
+  aModel.findOne(aQuery, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aContent)</span> </span>{
+    <span class="hljs-keyword">var</span> name = <span class="hljs-literal">null</span>;
+    <span class="hljs-keyword">var</span> rmQuery = { model: modelName };
+
+    <span class="hljs-keyword">if</span> (!aErr &amp;&amp; aContent) { <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">true</span>, aContent, <span class="hljs-literal">null</span>); }
+    <span class="hljs-keyword">if</span> (modelName !== <span class="hljs-string">'User'</span> &amp;&amp; -<span class="hljs-number">1</span> === modelNames.indexOf(modelName)) {
+      <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);
+    }
+
+    <span class="hljs-keyword">for</span> (name <span class="hljs-keyword">in</span> aQuery) {
+      rmQuery[<span class="hljs-string">'content.'</span> + name] = aQuery[name];
+    }
+
+    Remove.findOne(rmQuery, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(aErr, aRemoved)</span> </span>{
+      <span class="hljs-keyword">if</span> (aErr || !aRemoved) { <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>); }
+      <span class="hljs-keyword">if</span> (!aUser || (aUser !== <span class="hljs-literal">true</span> &amp;&amp; aUser.role &gt; aRemoved.removerRole)) {
+        <span class="hljs-keyword">return</span> aCallback(<span class="hljs-literal">false</span>, <span class="hljs-literal">null</span>, aRemoved);
+      }
+
+      aCallback(<span class="hljs-literal">false</span>, <span class="hljs-keyword">new</span> aModel(aRemoved.content), aRemoved);
+    });
+  });
+};</div></div></div></div></body></html>
