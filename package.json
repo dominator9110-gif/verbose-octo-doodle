@@ -1,0 +1,63 @@
+{
+  "name": "OpenUserJS.org",
+  "description": "An open source user scripts repo built using Node.js",
+  "version": "0.1.2",
+  "main": "app",
+  "dependencies": {
+    "express": "3.5.1",
+    "mu2": "*",
+    "mongoose": "*",
+    "connect-mongo": "*",
+    "formidable": "*",
+    "marked": "*",
+    "highlight.js": "*",
+    "async": "*",
+    "aws-sdk": "*",
+    "toobusy": "*",
+    "passport": "*",
+    "passport-amazon": "*",
+    "passport-aol": "*",
+    "passport-facebook": "*",
+    "passport-flickr": "*",
+    "passport-github": "*",
+    "passport-google": "*",
+    "passport-imgur": "*",
+    "passport-linkedin": "*",
+    "passport-reddit": "*",
+    "passport-twitter": "*",
+    "passport-windowslive": "*",
+    "passport-yahoo": "*",
+    "passport-foursquare": "*",
+    "passport-instagram": "*",
+    "passport-steam": "*",
+    "passport-tumblr": "*"
+  },
+  "devDependencies": {
+      "grunt": "~0.4",
+      "grunt-contrib-clean": "~0.5",
+      "grunt-contrib-copy": "~0.5",
+      "grunt-contrib-cssmin": "~0.9",
+      "grunt-contrib-htmlmin": "~0.3",
+      "grunt-contrib-jshint": "~0.10",
+      "grunt-contrib-uglify": "~0.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenUserJs/OpenUserJS.org.git"
+  },
+  "licenses": [
+    {
+      "type": "GPL"
+    }
+  ],
+  "subdomain": "openuserjs",
+  "domains": [
+    "openuserjs.org"
+  ],
+  "scripts": {
+    "start": "node app.js"
+  },
+  "engines": {
+    "node": "0.10.x"
+  }
+}
